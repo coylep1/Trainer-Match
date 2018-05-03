@@ -25,27 +25,26 @@
         </div>
         <ul class="nav nav-justified">
             <li class="nav-item expand-nav">
-                <a class="nav-link" href="@Url.Action("TrainerMessages", "Trainer")">Messages</a>
+                <a class="nav-link" href="@Url.Action("Index", "Trainer")">Home</a>
             </li>
             <li class="nav-item expand-nav">
-                <a class="nav-link" href="@Url.Action("Requests", "Trainer")">Requests for Service</a>
+                <a class="nav-link" href="@Url.Action("AddExercise", "Trainer")">Add to your Exercise Bank</a>
             </li>
             <li class="nav-item expand-nav">
-                <a class="nav-link" href="@Url.Action("AddExercise", "Trainer")">Add an Exercise</a>
-            </li>
-            <li class="nav-item expand-nav">
-                <a class="nav-link" href="@Url.Action("EditTrainer", "Trainer")">Edit Your Profile</a>
+                <a class="nav-link" href="@Url.Action("ClientServices", "Trainer")">Edit Workout Plans</a>
             </li>
             <li class="nav-item expand-nav">
                 <a class="nav-link" href="@Url.Action("Logout", "User")">Logout</a>
             </li>
         </ul>
     </header>
-    <div class="container-fluid">
-        @RenderBody()
+    <div class="page-wrap">
+        <div class="container-fluid">
+            @RenderBody()
+        </div>
     </div>
 
-    <footer class="footer">
+    <footer class="footer site-footer">
         <div class="copyright"> Copyright @DateTime.Now.Year WOM LLC.</div>
     </footer>
 </body>

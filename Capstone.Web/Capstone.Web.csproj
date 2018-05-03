@@ -142,6 +142,7 @@
     <None Include="Scripts\jquery-3.1.1.intellisense.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\exercise.js" />
     <Content Include="Scripts\jquery-3.1.1.js" />
     <Content Include="Scripts\jquery-3.1.1.min.js" />
     <Content Include="Scripts\jquery-3.1.1.slim.js" />
@@ -176,10 +177,12 @@
     <Compile Include="Models\CardioExercise.cs" />
     <Compile Include="Models\Exercise.cs" />
     <Compile Include="Models\Trainer.cs" />
+    <Compile Include="Models\TrainerClients.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\ViewModel\LoginViewModel.cs" />
     <Compile Include="Models\Plan.cs" />
     <Compile Include="Models\StrengthExercise.cs" />
+    <Compile Include="Models\ViewModel\PopulatePlanViewModel.cs" />
     <Compile Include="Models\ViewModel\RegisterViewModel.cs" />
     <Compile Include="Models\ViewModel\SearchViewModel.cs" />
     <Compile Include="Models\Workout.cs" />
@@ -204,8 +207,11 @@
     <Content Include="Views\Shared\_LayoutTrainee.cshtml" />
     <Content Include="Views\Shared\_LayoutTrainer.cshtml" />
     <Content Include="Views\Trainer\AddExercise.cshtml" />
-    <Content Include="Views\Trainer\TrainerMessages.cshtml" />
-    <Content Include="Views\Trainer\Requests.cshtml" />
+    <Content Include="Views\Trainer\ClientServices.cshtml" />
+    <Content Include="Views\Trainer\Detail.cshtml" />
+    <Content Include="Views\Trainee\Detail.cshtml" />
+    <Content Include="Views\Trainer\CreateWorkout.cshtml" />
+    <Content Include="Views\Trainer\AddExercisesToWorkout.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

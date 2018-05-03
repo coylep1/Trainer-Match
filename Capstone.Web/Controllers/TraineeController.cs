@@ -29,9 +29,14 @@ namespace Capstone.Web.Controllers
         {
             int ID = (int)Session[SessionKeys.UserID];
 
-            List<Plan> plans = _dalWorkout.GetPlans(ID);
+            Plan plan = _dalWorkout.GetTraineePlan(ID);
 
-            return View(plans);
+            if(plan != null)
+            {
+                plan.SeveralWorkouts = _dalWorkout.GetWorkoutsWithExercises(plan.Id);
+            }
+            
+            return View(plan);
         }
 
         public ActionResult Search(string json)
@@ -105,5 +110,6 @@ namespace Capstone.Web.Controllers
 
             return Redirect(Request.UrlReferrer.ToString());
         }
+
     }
 }

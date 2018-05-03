@@ -65,7 +65,7 @@ namespace Capstone.Web.DAL
                 cmd2.Parameters.AddWithValue("@price_per_hour", trainMaster.Price_Per_Hour);
                 cmd2.Parameters.AddWithValue("@exercise_philosophy", trainMaster.exercise_Philosophy);
                 cmd2.Parameters.AddWithValue("@additional_notes", trainMaster.Additional_notes);
-                cmd2.Parameters.AddWithValue("@experience", trainMaster.YearsExp);
+                cmd2.Parameters.AddWithValue("@experience", trainMaster.experience);
                 cmd2.Parameters.AddWithValue("@certifications", trainMaster.Certifications);
                 cmd2.Parameters.AddWithValue("@client_success_stories", trainMaster.Client_Success_Stories);
 
@@ -134,7 +134,7 @@ namespace Capstone.Web.DAL
                 SqlCommand cmd = new SqlCommand(UpdateTrainerSQL, conn);
                 cmd.Parameters.AddWithValue("@price_per_hour", update.Price_Per_Hour);
                 cmd.Parameters.AddWithValue("@certifications", update.Certifications);
-                cmd.Parameters.AddWithValue("@experience", update.YearsExp);
+                cmd.Parameters.AddWithValue("@experience", update.experience);
                 cmd.Parameters.AddWithValue("@client_success_stories", update.Client_Success_Stories);
                 cmd.Parameters.AddWithValue("@exercise_philosophy", update.exercise_Philosophy);
                 cmd.Parameters.AddWithValue("@additional_notes", update.Additional_notes);
@@ -172,22 +172,59 @@ namespace Capstone.Web.DAL
             return check;
         }
 
+        public Exercise GetExercise(int ExerciseID)
+        {
+            Exercise AExercise = new Exercise();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string SQLOneExercise = "SELECT exercise_id, exercise_name, exercise_description, video_link, exercise_type_id FROM exercises WHERE exercise_id = @exercise_id";
+
+                using (SqlCommand cmd = new SqlCommand(SQLOneExercise, conn))
+                {
+                    cmd.Parameters.AddWithValue("@exercise_id", ExerciseID);
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        Exercise add = MapRowToExercise(reader);
+
+                        AExercise = add;
+                    }
+                }
+            }
+
+            return AExercise;
+        }
+
         public bool MatchWithTrainer(int trainer, int trainee)
         {
             bool isMatched = false;
 
-            string MatchTrainerSQL = @"INSERT INTO Trainer_Trainee (trainer_id, trainee_id) 
-                                       VALUES (@trainer, @trainee);";
+            string MatchTrainerSQL = @"BEGIN
+                                        IF NOT EXISTS (SELECT * FROM Trainer_Trainee
+                                        WHERE trainer_id = @trainerID
+                                        AND trainee_id = @traineeID)
+                                        BEGIN
+                                        INSERT INTO Trainer_Trainee (trainer_id, trainee_id)
+                                        VALUES (@trainerID, @traineeID)
+                                        END
+                                        END";
 
             using(SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
                 SqlCommand cmd = new SqlCommand(MatchTrainerSQL, conn);
-                cmd.Parameters.AddWithValue("@trainer", trainer);
-                cmd.Parameters.AddWithValue("@trainee", trainee);
+                cmd.Parameters.AddWithValue("@trainerID", trainer);
+                cmd.Parameters.AddWithValue("@traineeID", trainee);
 
                 isMatched = cmd.ExecuteNonQuery() > 0 ? true : false;
+
+
             }
 
             return isMatched;
@@ -197,7 +234,10 @@ namespace Capstone.Web.DAL
         {
             List<User> ClientList = new List<User>();
 
-            string ClientSelectSQL = "Select user_info.first_name, user_info.last_name, user_info.user_id from user_info JOIN trainer_trainee on user_info.user_id = trainer_trainee.trainee_id WHERE trainer_trainee.trainer_id = @trainer_id";
+            string ClientSelectSQL = @"Select user_info.first_name, user_info.last_name, user_info.user_id 
+                                       FROM user_info 
+                                       JOIN trainer_trainee ON user_info.user_id = trainer_trainee.trainee_id 
+                                       WHERE trainer_trainee.trainer_id = @trainer_id";
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
@@ -216,7 +256,83 @@ namespace Capstone.Web.DAL
                     ClientList.Add(userToAdd);
                 }
             }
+
             return ClientList;
+        }
+
+        public List<User> GetClientsWithoutPlans(int trainerID)
+        {
+            List<User> ClientList = new List<User>();
+
+            string ClientSelectSQL = @"SELECT tt.*, wp.*, ui.first_name, ui.last_name, ui.user_id
+                                       FROM Trainer_Trainee tt
+                                       LEFT JOIN workout_plan wp ON tt.trainee_id = wp.trainee_id
+                                       JOIN user_info ui ON tt.trainee_id = ui.user_id
+                                       WHERE wp.plan_id IS NULL AND tt.trainer_id = @trainer_id";
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                SqlCommand cmd = new SqlCommand(ClientSelectSQL, conn);
+
+                cmd.Parameters.AddWithValue("@trainer_id", trainerID);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    User userToAdd = MapRowToUser(reader);
+
+                    ClientList.Add(userToAdd);
+                }
+            }
+
+            return ClientList;
+        }
+
+        public List<User> GetClientsWithPlans(int trainerID)
+        {
+            List<User> ClientList = new List<User>();
+
+            string ClientSelectSQL = @"SELECT tt.*, wp.*, ui.first_name, ui.last_name, ui.user_id
+                                       FROM Trainer_Trainee tt
+                                       JOIN workout_plan wp ON tt.trainee_id = wp.trainee_id
+                                       JOIN user_info ui ON tt.trainee_id = ui.user_id
+                                       WHERE tt.trainer_id = @trainer_id";
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                SqlCommand cmd = new SqlCommand(ClientSelectSQL, conn);
+
+                cmd.Parameters.AddWithValue("@trainer_id", trainerID);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    User userToAdd = MapRowToUser(reader);
+                    userToAdd.PlanId = Convert.ToInt32(reader["plan_id"]);
+
+                    ClientList.Add(userToAdd);
+                }
+            }
+
+            return ClientList;
+        }
+
+        private Exercise MapRowToExercise(SqlDataReader reader)
+        {
+            return new Exercise()
+            {
+                Name = Convert.ToString(reader["exercise_name"]),
+                Type = Convert.ToInt32(reader["exercise_type_id"]),
+                Description = Convert.ToString(reader["exercise_description"]),
+                ExerciseID = Convert.ToInt32(reader["exercise_id"]),
+                VideoLink = Convert.ToString(reader["video_link"])
+            };
         }
 
         private User MapRowToUser(SqlDataReader reader)
